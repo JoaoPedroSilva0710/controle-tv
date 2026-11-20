@@ -1,0 +1,14 @@
+# Clone do Free My TV (repositório próprio) e o binário do TizenBrew Installer (75 MB, não é deste projeto)
+free-my-tv/
+tools/
+# Pacotes gerados e qualquer coisa de assinatura
+*.wgt
+*.p12
+*.pem
+*.key
+*.keystore
+*.cer
+*.crt
+tizenbrewInstallerConfig*.json
+node_modules/
+__pycache__/

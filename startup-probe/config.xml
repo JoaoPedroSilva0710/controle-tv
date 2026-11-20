@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://local.tv/startup-probe" version="1.0.16" viewmodes="maximized">
+  <tizen:application id="TVStartPrb.Probe" package="TVStartPrb" required_version="5.5"/>
+  <content src="index.html"/>
+  <feature name="http://tizen.org/feature/screen.size.all"/>
+  <tizen:feature name="http://tizen.org/feature/web.service"/>
+  <tizen:profile name="tv-samsung"/>
+  <tizen:setting background-support="disable"/>
+  <tizen:privilege name="http://tizen.org/privilege/internet"/>
+  <tizen:privilege name="http://tizen.org/privilege/filesystem.read"/>
+  <tizen:privilege name="http://tizen.org/privilege/filesystem.write"/>
+  <tizen:privilege name="http://tizen.org/privilege/application.launch"/>
+  <access origin="http://127.0.0.1:8134" subdomains="false"/>
+  <name>Controle da TV</name>
+  <tizen:service id="TVStartPrb.Service" on-boot="true" auto-restart="true">
+    <tizen:content src="service/service.js"/>
+    <tizen:name>Controle da TV</tizen:name>
+    <tizen:description>Controle de inicialização e tempo de uso</tizen:description>
+    <tizen:category name="http://tizen.org/category/service"/>
+  </tizen:service>
+</widget>

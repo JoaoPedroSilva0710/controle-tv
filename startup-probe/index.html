@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><title>Controle da TV</title></head>
+<body style="background:#101820;color:#fff;font:28px sans-serif;padding:3em">
+<h1>Controle da TV 1.0.16</h1>
+<p id="remaining">Consultando tempo disponível…</p>
+<p id="protection"></p>
+<p id="error" role="alert"></p>
+<p id="diagnostic" style="font-size:20px"></p>
+<script>
+var serviceRequested = false;
+function show(status) {
+  var minutes = Math.floor(status.remaining / 60), seconds = status.remaining % 60;
+  document.getElementById('remaining').textContent = status.remaining === null ? 'Tempo indisponível' : 'YouTube disponível: ' + minutes + ' min ' + seconds + ' s';
+  document.getElementById('protection').textContent = 'Proteção: ' + status.protection;
+  document.getElementById('error').textContent = status.error || '';
+  document.getElementById('diagnostic').textContent = 'Serviço iniciado: ' + status.started + ' · Abertura do Free My TV: ' + status.launch;
+}
+function unavailable(error) {
+  document.getElementById('remaining').textContent = 'Tempo indisponível';
+  document.getElementById('protection').textContent = 'Proteção indisponível';
+  document.getElementById('error').textContent = 'Comunicação com o serviço: ' + (error.message || error.name || String(error));
+  if (serviceRequested) return;
+  serviceRequested = true;
+  function failed(error) {
+    document.getElementById('diagnostic').textContent = 'Inicialização recusada: ' + (error.message || error.name || String(error));
+  }
+  try {
+    tizen.application.launch('TVStartPrb.Service', function () {
+      document.getElementById('diagnostic').textContent = 'Inicialização solicitada à TV; aguardando o serviço.';
+      setTimeout(update, 1000);
+    }, failed);
+  } catch (error) { failed(error); }
+}
+function update() {
+  fetch('http://127.0.0.1:8134/').then(function (response) {
+    if (!response.ok) throw Error('HTTP ' + response.status);
+    return response.json();
+  }).then(show).catch(unavailable);
+}
+update(); setInterval(update, 5000);
+</script>
+</body></html>
