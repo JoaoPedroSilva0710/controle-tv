@@ -76,9 +76,18 @@ Requisitos: TV em *Developer Mode* com o IP deste computador como *Host PC IP*, 
 
    Também dá para usar a interface web: digite o IP da TV e escolha o arquivo `.wgt`.
 
-**Atenção:** depois de reassinar um pacote, o instalador apaga os certificados da própria configuração, que fica
-com `authorCert`, `distributorCert` e `password` em `null`. O `ferramentas/instalar.js` faz uma cópia antes e a
-devolve depois. Se usar a interface web, mantenha um backup desse arquivo (com permissão `600`) e restaure-o depois.
+**Atenção, dois problemas do instalador** (o `ferramentas/instalar.js` contorna os dois):
+
+- Depois de cada instalação, ele apaga os certificados da própria configuração, que fica com `authorCert`,
+  `distributorCert` e `password` em `null`. No código dele, o `case InstallFile` não tem `break` e cai em
+  `DeleteConfiguration`. O script faz uma cópia antes e a devolve depois. Se usar a interface web, mantenha um backup
+  desse arquivo (com permissão `600`) e restaure-o depois.
+- Ele responde "conectado" antes de descobrir a versão do Tizen. Um pacote enviado logo em seguida é instalado
+  **sem** ser reassinado, e a TV recusa com `install failed[118, -12], reason: Check certificate error`. O script
+  espera 3 segundos antes de enviar.
+
+A TV aceita uma conexão SDB por vez: feche o instalador antes de usar o `ler-status.py`, senão aparece
+`Connection reset by peer`.
 
 Atualizações precisam do mesmo certificado de autor. A TV recusa um pacote assinado por outro, e aí seria preciso
 desinstalar, o que apaga a cota salva.
@@ -94,6 +103,11 @@ python3 ferramentas/ler-status.py <IP da TV> [caminho/para/free-my-tv/tizen]
 O script usa o cliente SDB do Free My TV (`tizen/install.py`) e também mostra se o YouTube está visível.
 
 ## Limitações conhecidas
+
+- O botão Home do controle sempre abre a tela inicial da Samsung. A tecla é reservada ao sistema, a API de rede da
+  TV não enxerga essa tela, e `tizen.application.addAppStatusChangeListener` aceitou o registro mas não entregou
+  nenhum evento ao serviço (testado na versão 1.0.17, em 20/11/2026). Por isso não dá para redirecionar o Home para o
+  Free My TV. O serviço só abre o Free My TV quando a TV liga.
 
 - Não foi verificado depois de uma atualização de firmware nem de um desligamento completo da tomada.
 - O limite de tempo está fixo no código. Para mudar, edite `LIMIT` em `service/quota.js`, empacote e instale de novo.

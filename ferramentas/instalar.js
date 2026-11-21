@@ -3,8 +3,9 @@
 //
 //   node ferramentas/instalar.js <IP da TV> <arquivo.wgt>
 //
-// Depois de reassinar, o instalador apaga os certificados da própria configuração
-// (~/share/tizenbrewInstallerConfig.json fica com tudo null). Este script guarda uma cópia antes e a devolve depois.
+// Depois de cada InstallFile, o instalador apaga os certificados da própria configuração (no código dele, o case
+// InstallFile não tem break e cai em DeleteConfiguration; ~/share/tizenbrewInstallerConfig.json fica com tudo null).
+// Este script guarda uma cópia antes e a devolve depois.
 // Nunca envia DeleteConfiguration.
 'use strict';
 const fs = require('fs'), path = require('path'), os = require('os');
@@ -35,10 +36,13 @@ setTimeout(() => { console.log('Tempo esgotado.'); done(2); }, 240000);
 ws.onopen = () => ws.send(JSON.stringify({type: 6, payload: ip}));   // ConnectToTV
 ws.onmessage = (e) => {
   const {type, payload} = JSON.parse(e.data);
+  if (process.env.DEBUG) console.log('<-', type, JSON.stringify(payload).slice(0, 200));
   if (type === 6) {
     if (!payload.success) { console.log('Não conectou na TV: ' + payload.error); return done(1); }
-    console.log('Conectado; enviando ' + path.basename(wgt));
-    ws.send(JSON.stringify({type: 7, payload: fs.readFileSync(wgt).toString('base64')}));   // InstallFile
+    // The installer learns the Tizen version (sysinfo) only after it answers "connected": a package sent at once is
+    // installed without being re-signed for Tizen 7+, and the TV refuses it ("Check certificate error").
+    console.log('Conectado; enviando ' + path.basename(wgt) + ' em 3 s');
+    setTimeout(() => ws.send(JSON.stringify({type: 7, payload: fs.readFileSync(wgt).toString('base64')})), 3000);   // InstallFile
   } else if (type === 4) {
     console.log('Estado: ' + payload);
   } else if (type === 1 && payload.response === 0) {
